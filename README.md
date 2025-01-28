@@ -8,6 +8,9 @@ The Descope Model Context Protocol (MCP) server provides an interface to interac
 ## Available Tools
 
 - `search-audits`: Retrieves up to 10 audit log entries from your Descope project.
+- `search-users`: Retrieves up to 10 user records from your Descope project.
+- `create-user`: Creates a new user in your Descope project.
+- `invite-user`: Invites a new user to your Descope project.
 
 ## Requirements
 
