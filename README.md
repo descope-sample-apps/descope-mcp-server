@@ -1,4 +1,5 @@
 # Descope MCP Server
+[![smithery badge](https://smithery.ai/badge/@descope-sample-apps/descope-mcp-server)](https://smithery.ai/server/@descope-sample-apps/descope-mcp-server)
 
 ## Introduction
 
@@ -24,7 +25,15 @@ node --version  # Expected output: v18.0.0 or later
 ```
 
 ## Setup Instructions
+### Installing via Smithery
 
+To install Descope MCP Server for Claude Desktop automatically via [Smithery](https://smithery.ai/server/@descope-sample-apps/descope-mcp-server):
+
+```bash
+npx -y @smithery/cli install @descope-sample-apps/descope-mcp-server --client claude
+```
+
+### Manual Installation
 1. Clone the repository:
 
     ```bash

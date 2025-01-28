@@ -1,0 +1,21 @@
+# Smithery configuration file: https://smithery.ai/docs/config#smitheryyaml
+
+startCommand:
+  type: stdio
+  configSchema:
+    # JSON Schema defining the configuration options for the MCP.
+    type: object
+    required:
+      - descopeProjectId
+      - descopeManagementKey
+    properties:
+      descopeProjectId:
+        type: string
+        description: The Project ID for the Descope server.
+      descopeManagementKey:
+        type: string
+        description: The Management Key for accessing Descope APIs.
+  commandFunction:
+    # A function that produces the CLI command to start the MCP on stdio.
+    |-
+    (config) => ({ command: 'node', args: ['build/index.js'], env: { DESCOPE_PROJECT_ID: config.descopeProjectId, DESCOPE_MANAGEMENT_KEY: config.descopeManagementKey } })
