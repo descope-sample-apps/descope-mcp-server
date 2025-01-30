@@ -104,3 +104,5 @@ To apply the changes:
 1. Fully quit Claude Desktop (ensure it's not just minimized).
 2. Relaunch Claude Desktop.
 3. Check for the 🔌 icon to confirm the Descope server is connected.
+
+![Claude Desktop with Descope MCP Server x5](https://github.com/user-attachments/assets/9cd68040-cf11-4ce2-b0ab-22f18f8fc2cb)
