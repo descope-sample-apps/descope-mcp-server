@@ -106,3 +106,24 @@ To apply the changes:
 3. Check for the 🔌 icon to confirm the Descope server is connected.
 
 ![Claude Desktop with Descope MCP Server x5](https://github.com/user-attachments/assets/9cd68040-cf11-4ce2-b0ab-22f18f8fc2cb)
+
+
+## Running the server
+
+First, build the project:
+
+```bash
+npm run build
+```
+
+### 1. Running the server on stdio
+
+```bash
+npm run start:stdio
+```
+
+### 2. Running the server on SSE
+
+```bash
+npm run start:sse
+```
