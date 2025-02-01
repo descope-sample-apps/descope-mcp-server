@@ -71,20 +71,17 @@ export const createServer = () => {
         .default(5)
         .describe("Number of audit logs to fetch (max 10)"),
     },
-    async (
-      {
-        loginIds,
-        actions,
-        excludedActions,
-        tenants,
-        noTenants,
-        methods,
-        geos,
-        hoursBack,
-        limit,
-      },
-      context
-    ) => {
+    async ({
+      loginIds,
+      actions,
+      excludedActions,
+      tenants,
+      noTenants,
+      methods,
+      geos,
+      hoursBack,
+      limit,
+    }) => {
       try {
         console.log("Current Transport User", currentTransport?.context.user);
         const now = Date.now();
