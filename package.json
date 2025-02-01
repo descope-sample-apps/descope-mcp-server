@@ -8,9 +8,9 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "tsc && node -e \"require('fs').chmodSync('build/index.js', '755')\"",
     "start:stdio": "node build/index.js",
-    "start:sse": "node build/sse.js",
-    "start": "node build/index.js",
-    "dev": "tsc --watch & nodemon build/sse.js"
+    "start:sse": "node build/sse/index.js",
+    "start": "node build/sse/index.js",
+    "dev": "tsc --watch & nodemon build/sse/index.js"
   },
   "files": [
     "build"

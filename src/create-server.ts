@@ -1,7 +1,7 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import { descope } from "./descope.js";
-import { AuthenticatedSSETransport } from "./authenticated-sse-transport.js";
+import { AuthenticatedSSETransport } from "./sse/authenticated-sse-transport.js";
 
 export const createServer = () => {
   // Create server instance

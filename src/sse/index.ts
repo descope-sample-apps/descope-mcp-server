@@ -1,8 +1,9 @@
 import express, { NextFunction, Request, Response } from "express";
-import { createServer } from "./create-server.js";
-import { descope } from "./descope.js";
+import { createServer } from "../create-server.js";
+import { descope } from "../descope.js";
 import { AuthenticationInfo } from "@descope/node-sdk";
 import { AuthenticatedSSETransport } from "./authenticated-sse-transport.js";
+import { authMiddleware } from "./auth-middleware.js";
 
 declare module "express" {
   interface Request {
@@ -14,43 +15,16 @@ const app = express();
 
 const { server, getCurrentTransport } = createServer();
 
-const authenticateToken = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  try {
-    const authHeader = req.header("authorization");
-
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      res.status(401).json({ error: "Unauthorized: Missing Bearer token" });
-      return next(new Error("Unauthorized"));
-    }
-
-    const token = authHeader.split(" ")[1];
-
-    // Validate session with Descope
-    const authInfo: AuthenticationInfo = await descope.validateSession(token);
-    req.user = authInfo;
-    next();
-  } catch (err) {
-    res.status(403).json({ error: "Forbidden: Invalid token" });
-    next(err);
-  }
-};
 
 app.get("/.well-known/oauth-authorization-server", (req, res) => {
-  const DESCOPE_BASE_URL = process.env.BASE_URL || "https://api.descope.com";
-  if (!DESCOPE_BASE_URL) {
-    throw new Error("BASE_URL and DESCOPE_PROJECT_ID must be set");
-  }
+  const DESCOPE_BASE_URL = process.env.DESCOPE_BASE_URL || "https://api.descope.com";
   res.json({
     authorization_endpoint: `${DESCOPE_BASE_URL}/oauth2/v1/authorize`,
     token_endpoint: `${DESCOPE_BASE_URL}/oauth2/v1/token`,
   });
 });
 
-app.use(["/sse", "/message"], authenticateToken);
+app.use(["/sse", "/message"], authMiddleware);
 
 app.get("/sse", async (req: Request, res: Response) => {
   const transport = new AuthenticatedSSETransport("/message", res);
