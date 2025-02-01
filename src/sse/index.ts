@@ -15,7 +15,7 @@ const app = express();
 
 const { server, getCurrentTransport } = createServer();
 
-
+// OAuth discovery endpoint
 app.get("/.well-known/oauth-authorization-server", (req, res) => {
   const DESCOPE_BASE_URL = process.env.DESCOPE_BASE_URL || "https://api.descope.com";
   res.json({
@@ -24,14 +24,17 @@ app.get("/.well-known/oauth-authorization-server", (req, res) => {
   });
 });
 
+// Auth middleware
 app.use(["/sse", "/message"], authMiddleware);
 
+// SSE endpoint
 app.get("/sse", async (req: Request, res: Response) => {
   const transport = new AuthenticatedSSETransport("/message", res);
   transport.context = { user: req.user };
   await server.connect(transport);
 });
 
+// Post message endpoint
 app.post("/message", async (req: Request, res: Response) => {
   const currentTransport = getCurrentTransport();
   if (currentTransport) {
