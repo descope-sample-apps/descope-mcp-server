@@ -1,11 +1,10 @@
-import { SSEServerTransport } from "@modelcontextprotocol/sdk/server/sse.js";
 import express, { NextFunction, Request, Response } from "express";
 import { createServer } from "./create-server.js";
-import { createProxyMiddleware } from 'http-proxy-middleware';
-import { descope, DESCOPE_PROJECT_ID } from "./descope.js";
+import { descope } from "./descope.js";
 import { AuthenticationInfo } from "@descope/node-sdk";
+import { AuthenticatedSSETransport } from "./authenticated-sse-transport.js";
 
-declare module 'express' {
+declare module "express" {
   interface Request {
     user?: AuthenticationInfo;
   }
@@ -13,17 +12,19 @@ declare module 'express' {
 
 const app = express();
 
-const { server } = createServer();
+const { server, getCurrentTransport } = createServer();
 
-let transport: SSEServerTransport;
-
-const authenticateToken = async (req: Request, res: Response, next: NextFunction) => {
+const authenticateToken = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   try {
-    const authHeader = req.header('authorization');
+    const authHeader = req.header("authorization");
 
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
       res.status(401).json({ error: "Unauthorized: Missing Bearer token" });
-      return next(new Error('Unauthorized'));
+      return next(new Error("Unauthorized"));
     }
 
     const token = authHeader.split(" ")[1];
@@ -38,33 +39,33 @@ const authenticateToken = async (req: Request, res: Response, next: NextFunction
   }
 };
 
-const BASE_URL = process.env.BASE_URL || "https://api.descope.com";
-if (!BASE_URL) {
-  throw new Error('BASE_URL and DESCOPE_PROJECT_ID must be set');
-}
-
-app.use('/.well-known/oauth-authorization-server', createProxyMiddleware({
-  target: BASE_URL,
-  changeOrigin: false,
-  secure: false,
-  logger: console,
-  pathRewrite: {
-    "^/.well-known/oauth-authorization-server": `/${DESCOPE_PROJECT_ID}/.well-known/openid-configuration`
+app.get("/.well-known/oauth-authorization-server", (req, res) => {
+  const DESCOPE_BASE_URL = process.env.BASE_URL || "https://api.descope.com";
+  if (!DESCOPE_BASE_URL) {
+    throw new Error("BASE_URL and DESCOPE_PROJECT_ID must be set");
   }
-}));
+  res.json({
+    authorization_endpoint: `${DESCOPE_BASE_URL}/oauth2/v1/authorize`,
+    token_endpoint: `${DESCOPE_BASE_URL}/oauth2/v1/token`,
+  });
+});
 
 app.use(["/sse", "/message"], authenticateToken);
 
-app.get("/sse", async (req, res) => {
-  console.log("Received connection");
-  transport = new SSEServerTransport("/message", res);
+app.get("/sse", async (req: Request, res: Response) => {
+  const transport = new AuthenticatedSSETransport("/message", res);
+  transport.context = { user: req.user };
   await server.connect(transport);
 });
 
-app.post("/message", async (req, res) => {
-  console.log("Received message");
-
-  await transport.handlePostMessage(req, res);
+app.post("/message", async (req: Request, res: Response) => {
+  const currentTransport = getCurrentTransport();
+  if (currentTransport) {
+    currentTransport.context = { user: req.user };
+    await currentTransport.handlePostMessage(req, res);
+  } else {
+    res.status(500).json({ error: "No transport found" });
+  }
 });
 
 const PORT = process.env.PORT || 3001;
