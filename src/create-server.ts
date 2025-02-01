@@ -83,7 +83,9 @@ export const createServer = () => {
       limit,
     }) => {
       try {
-        console.log("Current Transport User", currentTransport?.context.user);
+        if (currentTransport && currentTransport.context && currentTransport.context.user) {
+          console.log("Current Transport User", currentTransport.context.user);
+        }
         const now = Date.now();
         const from = now - hoursBack * 60 * 60 * 1000;
         const audits = await descope.management.audit.search({
