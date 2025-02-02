@@ -1,6 +1,6 @@
 import express, { NextFunction, Request, Response } from "express";
 import { createServer } from "../create-server.js";
-import { descope } from "../descope.js";
+import { descope, DESCOPE_PROJECT_ID } from "../descope.js";
 import { AuthenticationInfo } from "@descope/node-sdk";
 import { AuthenticatedSSETransport } from "./authenticated-sse-transport.js";
 import { authMiddleware } from "./auth-middleware.js";
@@ -15,13 +15,14 @@ const app = express();
 
 const { server, getCurrentTransport } = createServer();
 
+const DESCOPE_BASE_URL =
+  process.env.DESCOPE_BASE_URL || "https://api.descope.com";
+
 // OAuth discovery endpoint
 app.get("/.well-known/oauth-authorization-server", (req, res) => {
-  const DESCOPE_BASE_URL = process.env.DESCOPE_BASE_URL || "https://api.descope.com";
-  res.json({
-    authorization_endpoint: `${DESCOPE_BASE_URL}/oauth2/v1/authorize`,
-    token_endpoint: `${DESCOPE_BASE_URL}/oauth2/v1/token`,
-  });
+  res.redirect(
+    `${DESCOPE_BASE_URL}/${DESCOPE_PROJECT_ID}/.well-known/openid-configuration`
+  );
 });
 
 // Auth middleware
