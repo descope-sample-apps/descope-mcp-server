@@ -1,6 +1,8 @@
 # Descope MCP Server
 [![smithery badge](https://smithery.ai/badge/@descope-sample-apps/descope-mcp-server)](https://smithery.ai/server/@descope-sample-apps/descope-mcp-server)
 
+<a href="https://glama.ai/mcp/servers/xr7eiu0phx"><img width="380" height="200" src="https://glama.ai/mcp/servers/xr7eiu0phx/badge" alt="descope-mcp-server MCP server" /></a>
+
 ## Introduction
 
 The Descope Model Context Protocol (MCP) server provides an interface to interact with Descope's Management APIs, enabling the search and retrieval of project-related information.
