@@ -1,6 +1,6 @@
 import express, { NextFunction, Request, Response } from "express";
 import { createServer } from "../create-server.js";
-import { DESCOPE_PROJECT_ID } from "../descope.js";
+import { DESCOPE_BASE_URL, DESCOPE_PROJECT_ID } from "../descope.js";
 import { AuthenticationInfo } from "@descope/node-sdk";
 import { AuthenticatedSSETransport } from "./authenticated-sse-transport.js";
 import { authMiddleware } from "./auth-middleware.js";
@@ -14,9 +14,6 @@ declare module "express" {
 const app = express();
 
 const { server, getCurrentTransport } = createServer();
-
-const DESCOPE_BASE_URL =
-  process.env.DESCOPE_BASE_URL || "https://api.descope.com";
 
 // Add CORS headers for the OAuth endpoints
 app.use("/authorize", (req, res, next) => {
