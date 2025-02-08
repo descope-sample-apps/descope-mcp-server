@@ -2,8 +2,9 @@ import express, { Request, Response } from "express";
 import { createServer } from "../create-server.js";
 import oauthRoutes from "./routes/oauth.js";
 import { authMiddleware } from "./auth-middleware.js";
-import { AuthenticatedSSETransport } from "./authenticated-sse-transport.js";
+import { SSEServerTransportWithContext } from "./sse-server-transport-with-context.js";
 import { AuthenticationInfo } from "@descope/node-sdk";
+import { convertDescopeToMCPAuthObject } from "./utils.js";
 
 declare module "express" {
   interface Request {
@@ -20,15 +21,15 @@ app.use(oauthRoutes);
 app.use(["/sse", "/message"], authMiddleware);
 
 app.get("/sse", async (req: Request, res: Response) => {
-  const transport = new AuthenticatedSSETransport("/message", res);
-  transport.context = { user: req.user };
+  const transport = new SSEServerTransportWithContext("/message", res);
+  transport.context = { auth: convertDescopeToMCPAuthObject(req.auth) };
   await server.connect(transport);
 });
 
 app.post("/message", async (req: Request, res: Response) => {
   const currentTransport = getCurrentTransport();
   if (currentTransport) {
-    currentTransport.context = { user: req.user };
+    currentTransport.context = { auth: convertDescopeToMCPAuthObject(req.auth) };
     await currentTransport.handlePostMessage(req, res);
   } else {
     res.status(500).json({ error: "No transport found" });

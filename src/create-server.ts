@@ -1,7 +1,7 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import { descope } from "./descope.js";
-import { AuthenticatedSSETransport } from "./sse/authenticated-sse-transport.js";
+import { SSEServerTransportWithContext } from "./sse/sse-server-transport-with-context.js";
 
 export const createServer = () => {
   // Create server instance
@@ -11,11 +11,11 @@ export const createServer = () => {
   });
 
   // Keep track of the current transport
-  let currentTransport: AuthenticatedSSETransport | null = null;
+  let currentTransport: SSEServerTransportWithContext | null = null;
 
   // Override the connect method to track the transport
   const originalConnect = server.connect.bind(server);
-  server.connect = async (transport: AuthenticatedSSETransport) => {
+  server.connect = async (transport: SSEServerTransportWithContext) => {
     currentTransport = transport;
     return originalConnect(transport);
   };
@@ -83,8 +83,8 @@ export const createServer = () => {
       limit,
     }) => {
       try {
-        if (currentTransport && currentTransport.context && currentTransport.context.user) {
-          console.log("Current Transport User", currentTransport.context.user);
+        if (currentTransport && currentTransport.context && currentTransport.context.auth) {
+          console.log("Current Transport User", currentTransport.context.auth);
         }
         const now = Date.now();
         const from = now - hoursBack * 60 * 60 * 1000;

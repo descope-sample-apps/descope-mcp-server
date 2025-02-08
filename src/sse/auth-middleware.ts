@@ -4,7 +4,7 @@ import { AuthenticationInfo } from "@descope/node-sdk";
 
 declare module "express" {
   interface Request {
-    user?: AuthenticationInfo;
+    auth?: AuthenticationInfo;
   }
 }
     
@@ -27,7 +27,7 @@ const authMiddleware = async (
     try {
       // Validate session with Descope
       const authInfo = await descope.validateSession(token);
-      req.user = authInfo;
+      req.auth = authInfo;
       next();
     } catch (err) {
       // Invalid token = 401 Unauthorized
