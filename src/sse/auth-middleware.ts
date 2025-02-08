@@ -16,20 +16,26 @@ const authMiddleware = async (
   try {
     const authHeader = req.header("authorization");
 
+    // No token = 401 Unauthorized
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      res.status(401).json({ error: "Unauthorized: Missing Bearer token" });
-      return next(new Error("Unauthorized"));
+      res.status(401).json({ error: "Authorization required" });
+      return;
     }
 
     const token = authHeader.split(" ")[1];
 
-    // Validate session with Descope
-    const authInfo: AuthenticationInfo = await descope.validateSession(token);
-    req.user = authInfo;
-    next();
+    try {
+      // Validate session with Descope
+      const authInfo = await descope.validateSession(token);
+      req.user = authInfo;
+      next();
+    } catch (err) {
+      // Invalid token = 401 Unauthorized
+      res.status(401).json({ error: "Invalid token" });
+    }
   } catch (err) {
-    res.status(403).json({ error: "Forbidden: Invalid token" });
-    next(err);
+    // Permission/scope issues = 403 Forbidden
+    res.status(403).json({ error: "Insufficient permissions" });
   }
 };
 
