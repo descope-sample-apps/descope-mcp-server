@@ -30,7 +30,7 @@ export class DescopeProxyOAuthServerProvider extends ProxyOAuthServerProvider {
   constructor({ projectId, managementKey }: DescopeProviderOptions) {
     super({
       endpoints: {
-        // authorizationUrl: "https://api.descope.com/oauth2/v1/authorize",
+        authorizationUrl: endpoints.authorize,
         tokenUrl: endpoints.token,
         revocationUrl: endpoints.revoke,
         // registrationUrl: "https://api.descope.com/oauth2/v1/register"
@@ -67,14 +67,8 @@ export class DescopeProxyOAuthServerProvider extends ProxyOAuthServerProvider {
     params: AuthorizationParams,
     res: Response
   ): Promise<void> {
-    const authorizationUrl = endpoints.authorize;
-
-    if (!authorizationUrl) {
-      throw new Error("No authorization endpoint configured");
-    }
-
     // Start with required OAuth parameters
-    const targetUrl = new URL(authorizationUrl);
+    const targetUrl = new URL(this._endpoints.authorizationUrl);
     const searchParams = new URLSearchParams({
       client_id: client.client_id,
       response_type: "code",
@@ -90,8 +84,7 @@ export class DescopeProxyOAuthServerProvider extends ProxyOAuthServerProvider {
 
     // only set the state and scope if they are not already set
     if (!searchParams.get("state")) searchParams.set("state", "test-state");
-    if (!searchParams.get("scope"))
-      searchParams.set("scope", "info");
+    if (!searchParams.get("scope")) searchParams.set("scope", "openid");
 
     targetUrl.search = searchParams.toString();
     res.redirect(targetUrl.toString());
