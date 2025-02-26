@@ -6,7 +6,7 @@ import { requireBearerAuth } from "@modelcontextprotocol/sdk/server/auth/middlew
 import DescopeClient from "@descope/node-sdk";
 import dotenv from "dotenv";
 import { DescopeProxyOAuthServerProvider } from "./descope-proxy-oauth-server-provider.js";
-import { ProxyOptions } from "@modelcontextprotocol/sdk/server/auth/proxyProvider.js";
+import { ProxyOAuthServerProvider, ProxyOptions } from "@modelcontextprotocol/sdk/server/auth/proxyProvider.js";
 
 dotenv.config();
 
@@ -23,12 +23,10 @@ if (!DESCOPE_PROJECT_ID || !DESCOPE_MANAGEMENT_KEY) {
 
 const proxyOptions: ProxyOptions = {
   endpoints: {
-    // authorizationUrl: "https://api.descope.com/oauth2/v1/authorize",
-    // lacking optional state and scope parameters
+    authorizationUrl: "https://api.descope.com/oauth2/v1/authorize",
     tokenUrl: "https://api.descope.com/oauth2/v1/token",
-    revocationUrl: "https://api.descope.com/oauth2/v1/revoke"
-    // registrationUrl: "https://api.descope.com/oauth2/v1/register"
-    // Dynamic Client Registration doesn't exist
+    revocationUrl: "https://api.descope.com/oauth2/v1/revoke",
+    registrationUrl: "https://api.descope.com/oauth2/v1/register"
   },
   verifyAccessToken: async (token) => {
     const descope = DescopeClient({
@@ -44,59 +42,22 @@ const proxyOptions: ProxyOptions = {
     }
   },
   getClient: async (clientId) => {
-    // TODO: get client from descope
-    // Load 3rd-party app by client_id?
+    // get oauth client information
     // https://docs.descope.com/api/management/third-party-apps/load-third-party-application
-    // seems to be app id only
-
-    // return client's full information
-    // including redirect_uris, scope, etc.
-    // {
-    //   // Client Information fields (required)
-    //   client_id: string;
-    //   client_secret?: string;
-    //   client_id_issued_at?: number;
-    //   client_secret_expires_at?: number;
-    
-    //   // Client Metadata fields
-    //   redirect_uris: string[];  // Required
-    //   token_endpoint_auth_method?: string;
-    //   grant_types?: string[];
-    //   response_types?: string[];
-    //   client_name?: string;
-    //   client_uri?: string;
-    //   logo_uri?: string;
-    //   scope?: string;
-    //   contacts?: string[];
-    //   tos_uri?: string;
-    //   policy_uri?: string;
-    //   jwks_uri?: string;
-    //   jwks?: any;
-    //   software_id?: string;
-    //   software_version?: string;
-    // }
-    if (clientId === "UDJzUEo5MnRmS0V5SDdQTFl3WXhRbFh0NkZOcTpUUEEydFlRU3VSakpvbThXY2pMTndQRnBFZXcwd2w=") {
-      return {
-        client_id: "UDJzUEo5MnRmS0V5SDdQTFl3WXhRbFh0NkZOcTpUUEEydFlRU3VSakpvbThXY2pMTndQRnBFZXcwd2w=",
-        redirect_uris: ["http://localhost:5173/oauth/callback"]
-      }
-    } else {
-      throw new Error("Client not found");
+    return {
+      client_id: clientId,
+      redirect_uris: ["http://localhost:5173/oauth/callback"]
     }
   }
 };
 
-const proxyProvider = new DescopeProxyOAuthServerProvider({
-  projectId: DESCOPE_PROJECT_ID,
-  managementKey: DESCOPE_MANAGEMENT_KEY
-});
+const proxyProvider = new ProxyOAuthServerProvider(proxyOptions);
 
-// Add the auth router
 app.use(
   mcpAuthRouter({
     provider: proxyProvider,
     issuerUrl,
-    serviceDocumentationUrl: new URL("https://docs.descope.com/"), // optional
+    serviceDocumentationUrl: new URL("https://docs.example.com"), // optional
   })
 );
 
