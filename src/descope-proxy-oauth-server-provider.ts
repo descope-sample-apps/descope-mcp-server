@@ -14,10 +14,16 @@ import DescopeClient from "@descope/node-sdk";
 import { OAuthRegisteredClientsStore } from "@modelcontextprotocol/sdk/server/auth/clients.js";
 import { ServerError } from "@modelcontextprotocol/sdk/server/auth/errors.js";
 
+// const endpoints = {
+//   authorize: "https://api.descope.com/oauth2/v1/apps/authorize",
+//   token: "https://api.descope.com/oauth2/v1/apps/token",
+//   revoke: "https://api.descope.com/oauth2/v1/apps/revoke",
+// };
+
 const endpoints = {
-  authorize: "https://api.descope.com/oauth2/v1/apps/authorize",
-  token: "https://api.descope.com/oauth2/v1/apps/token",
-  revoke: "https://api.descope.com/oauth2/v1/apps/revoke",
+  authorize: "https://api.descope.com/oauth2/v1/authorize",
+  token: "https://api.descope.com/oauth2/v1/token",
+  revoke: "https://api.descope.com/oauth2/v1/revoke",
 };
 interface DescopeProviderOptions extends Partial<ProxyOptions> {
   projectId: string;
