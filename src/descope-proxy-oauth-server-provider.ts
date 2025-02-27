@@ -1,9 +1,5 @@
 import { AuthorizationParams } from "@modelcontextprotocol/sdk/server/auth/provider.js";
 import {
-  ProxyOAuthServerProvider,
-  ProxyOptions,
-} from "@modelcontextprotocol/sdk/server/auth/proxyProvider.js";
-import {
   OAuthClientInformationFull,
   OAuthClientInformationFullSchema,
   OAuthTokens,
@@ -13,6 +9,7 @@ import { Response } from "express";
 import DescopeClient from "@descope/node-sdk";
 import { OAuthRegisteredClientsStore } from "@modelcontextprotocol/sdk/server/auth/clients.js";
 import { ServerError } from "@modelcontextprotocol/sdk/server/auth/errors.js";
+import { ProxyOAuthServerProvider, ProxyOptions } from "./proxy-provider.js";
 
 // const endpoints = {
 //   authorize: "https://api.descope.com/oauth2/v1/apps/authorize",

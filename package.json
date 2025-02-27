@@ -18,7 +18,7 @@
   "license": "ISC",
   "dependencies": {
     "@descope/node-sdk": "^1.6.13",
-    "@modelcontextprotocol/sdk": "file:../../../documents/github/typescript-sdk",
+    "@modelcontextprotocol/sdk": "^1.6.0",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
