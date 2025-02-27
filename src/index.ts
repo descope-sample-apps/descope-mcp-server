@@ -27,7 +27,8 @@ const proxyProvider = new DescopeProxyOAuthServerProvider({
 
 app.use(mcpAuthRouter({
     provider: proxyProvider,
-    issuerUrl,
+    issuerUrl: new URL("http://localhost:3001"),
+    baseUrl: new URL("http://localhost:3001"),
     serviceDocumentationUrl: new URL("https://docs.descope.com/"),
 }))
 
