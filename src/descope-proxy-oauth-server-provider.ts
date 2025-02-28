@@ -2,14 +2,14 @@ import { AuthorizationParams } from "@modelcontextprotocol/sdk/server/auth/provi
 import {
   OAuthClientInformationFull,
   OAuthClientInformationFullSchema,
-  OAuthTokens,
-  OAuthTokensSchema,
 } from "@modelcontextprotocol/sdk/shared/auth.js";
 import { Response } from "express";
 import DescopeClient from "@descope/node-sdk";
 import { OAuthRegisteredClientsStore } from "@modelcontextprotocol/sdk/server/auth/clients.js";
-import { ServerError } from "@modelcontextprotocol/sdk/server/auth/errors.js";
-import { ProxyOAuthServerProvider, ProxyOptions } from "./proxy-provider.js";
+import { ProxyOAuthServerProvider, ProxyOptions } from "../../typescript-sdk/dist/esm/server/auth/proxyProvider.js";
+// import { ProxyOptions, ProxyOAuthServerProvider } from "@modelcontextprotocol/sdk/server/auth/providers/proxyProvider.js";
+// import { ProxyOAuthServerProvider, ProxyOptions } from "./proxy-provider.js";
+// import { ProxyOAuthServerProvider, ProxyOptions } from "./proxy-provider.js";
 
 // const endpoints = {
 //   authorize: "https://api.descope.com/oauth2/v1/apps/authorize",
@@ -23,30 +23,41 @@ const endpoints = {
   revoke: "https://api.descope.com/oauth2/v1/revoke",
 };
 interface DescopeProviderOptions extends Partial<ProxyOptions> {
-  projectId: string;
-  managementKey: string;
+  projectId?: string;
+  managementKey?: string;
 }
 
 export class DescopeProxyOAuthServerProvider extends ProxyOAuthServerProvider {
   private managementKey: string;
   private projectId: string;
-  constructor({ projectId, managementKey }: DescopeProviderOptions) {
+
+  constructor(options?: DescopeProviderOptions) {
+    const configuredProjectId = options?.projectId || process.env.DESCOPE_PROJECT_ID;
+    const configuredManagementKey = options?.managementKey || process.env.DESCOPE_MANAGEMENT_KEY;
+
+    if (!configuredProjectId) {
+      throw new Error('Project ID is required. Provide it through DESCOPE_PROJECT_ID environment variable or constructor options.');
+    }
+
+    if (!configuredManagementKey) {
+      throw new Error('Management Key is required. Provide it through DESCOPE_MANAGEMENT_KEY environment variable or constructor options.');
+    }
+
     super({
       endpoints: {
         authorizationUrl: endpoints.authorize,
         tokenUrl: endpoints.token,
         revocationUrl: endpoints.revoke,
-        // registrationUrl: "https://api.descope.com/oauth2/v1/register"
       },
       verifyAccessToken: async (token) => {
         const descope = DescopeClient({
-          projectId: projectId,
-          managementKey: managementKey,
+          projectId: this.projectId,
+          managementKey: this.managementKey,
         });
         const authInfo = await descope.validateSession(token);
         return {
           token: authInfo.jwt,
-          clientId: projectId,
+          clientId: this.projectId,
           scopes: [],
           expiresAt: authInfo.token.exp,
         };
@@ -59,8 +70,9 @@ export class DescopeProxyOAuthServerProvider extends ProxyOAuthServerProvider {
         };
       },
     });
-    this.projectId = projectId;
-    this.managementKey = managementKey;
+
+    this.projectId = configuredProjectId;
+    this.managementKey = configuredManagementKey;
   }
 
   // We override the authorize method to support the state and scope parameters

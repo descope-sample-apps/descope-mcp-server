@@ -6,22 +6,13 @@ import { SSEServerTransport } from "@modelcontextprotocol/sdk/server/sse.js";
 import { createServer } from "./create-server.js";
 
 import dotenv from "dotenv";
+import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 
 dotenv.config();
 
 const app = express();
 
-const DESCOPE_PROJECT_ID = process.env.DESCOPE_PROJECT_ID;
-const DESCOPE_MANAGEMENT_KEY = process.env.DESCOPE_MANAGEMENT_KEY;
-
-if (!DESCOPE_PROJECT_ID || !DESCOPE_MANAGEMENT_KEY) {
-    throw new Error("DESCOPE_PROJECT_ID and DESCOPE_MANAGEMENT_KEY must be set");
-}
-
-const proxyProvider = new DescopeProxyOAuthServerProvider({
-    projectId: DESCOPE_PROJECT_ID,
-    managementKey: DESCOPE_MANAGEMENT_KEY
-})
+const proxyProvider = new DescopeProxyOAuthServerProvider()
 
 app.use(mcpAuthRouter({
     provider: proxyProvider,
@@ -35,17 +26,29 @@ app.use(["/sse", "/message"], requireBearerAuth({
     provider: proxyProvider,
 }))
 
-const { server } = createServer();
-
-let transport: SSEServerTransport;
+let servers: McpServer[] = [];
 
 app.get("/sse", async (req, res) => {
+    const transport = new SSEServerTransport("/message", res);
+    const { server } = createServer();
+
+    servers.push(server);
+    server.server.onclose = () => {
+        console.log("SSE connection closed");
+        servers = servers.filter((s) => s !== server);
+    };
+
     console.log("Received connection");
-    transport = new SSEServerTransport("/message", res);
     await server.connect(transport);
 })
 
 app.post("/message", async (req, res) => {
+    const sessionId = req.query.sessionId as string;
+    const transport = servers.map(s => s.server.transport as SSEServerTransport).find(t => t.sessionId === sessionId);
+    if (!transport) {
+        res.status(404).send("Session not found");
+        return;
+    }
     console.log("Received message");
     await transport.handlePostMessage(req, res);
 })
