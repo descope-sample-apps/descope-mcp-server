@@ -1,22 +1,59 @@
-#!/usr/bin/env node
+import express from "express";
+import { DescopeProxyOAuthServerProvider } from "./descope-proxy-oauth-server-provider.js";
+import { mcpAuthRouter } from "@modelcontextprotocol/sdk/server/auth/router.js";
+import { requireBearerAuth } from "@modelcontextprotocol/sdk/server/auth/middleware/bearerAuth.js";
+import { SSEServerTransport } from "@modelcontextprotocol/sdk/server/sse.js";
+import { createServer } from "./create-server.js";
 
-import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
-import { createServer } from "./descope.js";
+import dotenv from "dotenv";
+import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 
-async function main() {
-    const transport = new StdioServerTransport();
+dotenv.config();
+
+const app = express();
+
+const proxyProvider = new DescopeProxyOAuthServerProvider()
+
+app.use(mcpAuthRouter({
+    provider: proxyProvider,
+    issuerUrl: new URL("http://localhost:3001"),
+    // baseUrl: new URL("http://localhost:3001"),
+    serviceDocumentationUrl: new URL("https://docs.descope.com/"),
+}))
+
+
+app.use(["/sse", "/message"], requireBearerAuth({
+    provider: proxyProvider,
+}))
+
+let servers: McpServer[] = [];
+
+app.get("/sse", async (req, res) => {
+    const transport = new SSEServerTransport("/message", res);
     const { server } = createServer();
 
+    servers.push(server);
+    server.server.onclose = () => {
+        console.log("SSE connection closed");
+        servers = servers.filter((s) => s !== server);
+    };
+
+    console.log("Received connection");
     await server.connect(transport);
+})
 
-    // Cleanup on exit
-    process.on("SIGINT", async () => {
-        await server.close();
-        process.exit(0);
-    });
-}
+app.post("/message", async (req, res) => {
+    const sessionId = req.query.sessionId as string;
+    const transport = servers.map(s => s.server.transport as SSEServerTransport).find(t => t.sessionId === sessionId);
+    if (!transport) {
+        res.status(404).send("Session not found");
+        return;
+    }
+    console.log("Received message");
+    await transport.handlePostMessage(req, res);
+})
 
-main().catch((error) => {
-    console.error("Server error:", error);
-    process.exit(1);
-});
+const PORT = process.env.PORT || 3001;
+app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
+})
