@@ -1,8 +1,10 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
+import dotenv from "dotenv";
 
 import DescopeClient from '@descope/node-sdk';
+
+dotenv.config();
 
 const DESCOPE_PROJECT_ID = process.env.DESCOPE_PROJECT_ID;
 const DESCOPE_MANAGEMENT_KEY = process.env.DESCOPE_MANAGEMENT_KEY;
