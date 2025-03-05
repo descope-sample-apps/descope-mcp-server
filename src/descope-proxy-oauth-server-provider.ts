@@ -8,18 +8,19 @@ import DescopeClient from "@descope/node-sdk";
 import { OAuthRegisteredClientsStore } from "@modelcontextprotocol/sdk/server/auth/clients.js";
 import { ProxyOptions, ProxyOAuthServerProvider } from "@modelcontextprotocol/sdk/server/auth/providers/proxyProvider.js";
 
-
-// const endpoints = {
-//   authorize: "https://api.descope.com/oauth2/v1/apps/authorize",
-//   token: "https://api.descope.com/oauth2/v1/apps/token",
-//   revoke: "https://api.descope.com/oauth2/v1/apps/revoke",
-// };
+const BASE_URL = "https://api.descope.org";
 
 const endpoints = {
-  authorize: "https://api.descope.com/oauth2/v1/authorize",
-  token: "https://api.descope.com/oauth2/v1/token",
-  revoke: "https://api.descope.com/oauth2/v1/revoke",
+  authorize: `${BASE_URL}/oauth2/v1/apps/authorize`,
+  token: `${BASE_URL}/oauth2/v1/apps/token`,
+  revoke: `${BASE_URL}/oauth2/v1/apps/revoke`,
 };
+
+// const endpoints = {
+//   authorize: "https://api.descope.com/oauth2/v1/authorize",
+//   token: "https://api.descope.com/oauth2/v1/token",
+//   revoke: "https://api.descope.com/oauth2/v1/revoke",
+// };
 interface DescopeProviderOptions extends Partial<ProxyOptions> {
   projectId?: string;
   managementKey?: string;
@@ -110,9 +111,8 @@ export class DescopeProxyOAuthServerProvider extends ProxyOAuthServerProvider {
         const { client_name, redirect_uris } = client;
 
         // Create an OAuth Client
-        // https://docs.descope.com/api/management/third-party-apps/create-third-party-application
         const createAppResponse = await fetch(
-          "https://api.descope.com/v1/mgmt/thirdparty/app/create",
+          `${BASE_URL}/v1/mgmt/thirdparty/app/create`,
           {
             headers: {
               Authorization: `Bearer ${this.projectId}:${this.managementKey}`,
@@ -121,24 +121,25 @@ export class DescopeProxyOAuthServerProvider extends ProxyOAuthServerProvider {
             method: "POST",
             body: JSON.stringify({
               name: client_name,
-              approvedCallbackUrls: redirect_uris,
-              loginPageUrl: `https://api.descope.com/login/${this.projectId}?flow=sign-up-or-in`,
-              permissionsScopes: [
-                {
-                  name: "string",
-                  description: "string",
-                  optional: true,
-                  values: ["string"],
-                },
-              ],
-              attributesScopes: [
-                {
-                  name: "string",
-                  description: "string",
-                  optional: true,
-                  values: ["string"],
-                },
-              ],
+              approvedCallbackUrls: [...redirect_uris, "https://oauthdebugger.com/debug"],
+              // logo: undefined,
+              loginPageUrl: `${BASE_URL}/login/${this.projectId}?flow=consent`,
+              // permissionsScopes: [
+              //   {
+              //     name: "string",
+              //     description: "string",
+              //     optional: true,
+              //     values: ["string"],
+              //   },
+              // ],
+              // attributesScopes: [
+              //   {
+              //     name: "string",
+              //     description: "string",
+              //     optional: true,
+              //     values: ["string"],
+              //   },
+              // ],
             }),
           }
         );
@@ -147,13 +148,13 @@ export class DescopeProxyOAuthServerProvider extends ProxyOAuthServerProvider {
           id: string;
           cleartext: string;
         };
-        // get the .id key from the response
+
         const appId = createAppResponseJson.id;
 
         // Load the OAuth Client
         // https://docs.descope.com/api/management/third-party-apps/load-third-party-application
         const loadAppResponse = await fetch(
-          `https://api.descope.com/v1/mgmt/thirdparty/app/load?id=${appId}`,
+          `${BASE_URL}/v1/mgmt/thirdparty/app/load?id=${appId}`,
           {
             headers: {
               Authorization: `Bearer ${this.projectId}:${this.managementKey}`,
@@ -161,10 +162,12 @@ export class DescopeProxyOAuthServerProvider extends ProxyOAuthServerProvider {
             method: "GET",
           }
         );
+        // console.log("Load app response", await loadAppResponse.json());
         const loadAppResponseJson = (await loadAppResponse.json()) as {
-          app: { clientId: string };
+          clientId: string;
         };
-        const client_id = loadAppResponseJson.app.clientId;
+        console.log("Load app response json", loadAppResponseJson);
+        const client_id = loadAppResponseJson.clientId;
 
         // if (!response.ok) {
         //   throw new ServerError(`Client registration failed: ${response.status}`);
