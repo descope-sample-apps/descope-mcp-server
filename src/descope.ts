@@ -1,6 +1,8 @@
-
-
 import DescopeClient from '@descope/node-sdk';
+
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 const DESCOPE_PROJECT_ID = process.env.DESCOPE_PROJECT_ID;
 const DESCOPE_MANAGEMENT_KEY = process.env.DESCOPE_MANAGEMENT_KEY;
