@@ -7,20 +7,14 @@ import { Response } from "express";
 import DescopeClient from "@descope/node-sdk";
 import { OAuthRegisteredClientsStore } from "@modelcontextprotocol/sdk/server/auth/clients.js";
 import { ProxyOptions, ProxyOAuthServerProvider } from "@modelcontextprotocol/sdk/server/auth/providers/proxyProvider.js";
-
-const BASE_URL = "https://api.descope.org";
+import { DESCOPE_BASE_URL } from "./constants.js";
+import { validateSession } from "./validate-session.js";
 
 const endpoints = {
-  authorize: `${BASE_URL}/oauth2/v1/apps/authorize`,
-  token: `${BASE_URL}/oauth2/v1/apps/token`,
-  revoke: `${BASE_URL}/oauth2/v1/apps/revoke`,
+  authorize: `${DESCOPE_BASE_URL}/oauth2/v1/apps/authorize`,
+  token: `${DESCOPE_BASE_URL}/oauth2/v1/apps/token`,
+  revoke: `${DESCOPE_BASE_URL}/oauth2/v1/apps/revoke`,
 };
-
-// const endpoints = {
-//   authorize: "https://api.descope.com/oauth2/v1/authorize",
-//   token: "https://api.descope.com/oauth2/v1/token",
-//   revoke: "https://api.descope.com/oauth2/v1/revoke",
-// };
 interface DescopeProviderOptions extends Partial<ProxyOptions> {
   projectId?: string;
   managementKey?: string;
@@ -38,9 +32,9 @@ export class DescopeProxyOAuthServerProvider extends ProxyOAuthServerProvider {
       throw new Error('Project ID is required. Provide it through DESCOPE_PROJECT_ID environment variable or constructor options.');
     }
 
-    if (!configuredManagementKey) {
-      throw new Error('Management Key is required. Provide it through DESCOPE_MANAGEMENT_KEY environment variable or constructor options.');
-    }
+    // if (!configuredManagementKey) {
+    //   throw new Error('Management Key is required. Provide it through DESCOPE_MANAGEMENT_KEY environment variable or constructor options.');
+    // }
 
     super({
       endpoints: {
@@ -49,11 +43,15 @@ export class DescopeProxyOAuthServerProvider extends ProxyOAuthServerProvider {
         revocationUrl: endpoints.revoke,
       },
       verifyAccessToken: async (token) => {
+        console.log("Verifying access token")
+        console.log(this.projectId)
         const descope = DescopeClient({
           projectId: this.projectId,
-          managementKey: this.managementKey,
+          // managementKey: this.managementKey,
+          baseUrl: DESCOPE_BASE_URL
         });
         const authInfo = await descope.validateSession(token);
+        console.log(authInfo)
         return {
           token: authInfo.jwt,
           clientId: this.projectId,
@@ -71,7 +69,7 @@ export class DescopeProxyOAuthServerProvider extends ProxyOAuthServerProvider {
     });
 
     this.projectId = configuredProjectId;
-    this.managementKey = configuredManagementKey;
+    this.managementKey = configuredManagementKey ?? "";
   }
 
   // We override the authorize method to support the state and scope parameters
@@ -97,7 +95,7 @@ export class DescopeProxyOAuthServerProvider extends ProxyOAuthServerProvider {
       searchParams.set("scope", params.scopes.join(" "));
 
     // only set the state and scope if they are not already set
-    if (!searchParams.get("state")) searchParams.set("state", "test-state");
+    // if (!searchParams.get("state")) searchParams.set("state", "test-state");
     if (!searchParams.get("scope")) searchParams.set("scope", "openid");
 
     targetUrl.search = searchParams.toString();
@@ -112,7 +110,7 @@ export class DescopeProxyOAuthServerProvider extends ProxyOAuthServerProvider {
 
         // Create an OAuth Client
         const createAppResponse = await fetch(
-          `${BASE_URL}/v1/mgmt/thirdparty/app/create`,
+          `${DESCOPE_BASE_URL}/v1/mgmt/thirdparty/app/create`,
           {
             headers: {
               Authorization: `Bearer ${this.projectId}:${this.managementKey}`,
@@ -123,7 +121,7 @@ export class DescopeProxyOAuthServerProvider extends ProxyOAuthServerProvider {
               name: client_name,
               approvedCallbackUrls: [...redirect_uris, "https://oauthdebugger.com/debug"],
               // logo: undefined,
-              loginPageUrl: `${BASE_URL}/login/${this.projectId}?flow=consent`,
+              loginPageUrl: `${DESCOPE_BASE_URL}/login/${this.projectId}?flow=consent`,
               // permissionsScopes: [
               //   {
               //     name: "string",
@@ -154,7 +152,7 @@ export class DescopeProxyOAuthServerProvider extends ProxyOAuthServerProvider {
         // Load the OAuth Client
         // https://docs.descope.com/api/management/third-party-apps/load-third-party-application
         const loadAppResponse = await fetch(
-          `${BASE_URL}/v1/mgmt/thirdparty/app/load?id=${appId}`,
+          `${DESCOPE_BASE_URL}/v1/mgmt/thirdparty/app/load?id=${appId}`,
           {
             headers: {
               Authorization: `Bearer ${this.projectId}:${this.managementKey}`,
