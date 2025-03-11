@@ -1,7 +1,5 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
-import descope from "./descope.js";
-import { RequestHandlerExtra } from "@modelcontextprotocol/sdk/shared/protocol.js";
 import { DESCOPE_BASE_URL } from "./constants.js";
 
 export const createServer = () => {
@@ -83,7 +81,7 @@ export const createServer = () => {
                 //     geos,
                 // });
                 const access_token = authInfo?.token;
-                const response = await fetch("https://api-guy2.staging.super-sso.com/v1/mgmt/audit/search", {
+                const response = await fetch(`${DESCOPE_BASE_URL}/v1/mgmt/audit/search`, {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
