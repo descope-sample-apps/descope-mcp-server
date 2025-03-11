@@ -8,7 +8,6 @@ import DescopeClient from "@descope/node-sdk";
 import { OAuthRegisteredClientsStore } from "@modelcontextprotocol/sdk/server/auth/clients.js";
 import { ProxyOptions, ProxyOAuthServerProvider } from "@modelcontextprotocol/sdk/server/auth/providers/proxyProvider.js";
 import { DESCOPE_BASE_URL } from "./constants.js";
-import { validateSession } from "./validate-session.js";
 
 const endpoints = {
   authorize: `${DESCOPE_BASE_URL}/oauth2/v1/apps/authorize`,
