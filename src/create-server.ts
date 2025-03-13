@@ -195,68 +195,84 @@ export const createServer = () => {
     // );
 
     // Add create-user tool
-    // server.tool(
-    //     "create-user",
-    //     "Create a new user in Descope project",
-    //     {
-    //         loginId: z.string()
-    //             .describe("Primary login identifier for the user"),
-    //         additionalLoginIds: z.array(z.string()).optional()
-    //             .describe("Additional login identifiers"),
-    //         email: z.string().email().optional()
-    //             .describe("User's email address"),
-    //         verifiedEmail: z.boolean().optional()
-    //             .describe("Whether the email is pre-verified"),
-    //         phone: z.string().optional()
-    //             .describe("User's phone number in E.164 format"),
-    //         verifiedPhone: z.boolean().optional()
-    //             .describe("Whether the phone is pre-verified"),
-    //         displayName: z.string().optional()
-    //             .describe("User's display name"),
-    //         givenName: z.string().optional()
-    //             .describe("User's given/first name"),
-    //         middleName: z.string().optional()
-    //             .describe("User's middle name"),
-    //         familyName: z.string().optional()
-    //             .describe("User's family/last name"),
-    //         picture: z.string().url().optional()
-    //             .describe("URL to user's profile picture"),
-    //         roles: z.array(z.string()).optional()
-    //             .describe("Global role names to assign to the user"),
-    //         userTenants: z.array(z.object({
-    //             tenantId: z.string(),
-    //             roleNames: z.array(z.string()),
-    //         })).optional()
-    //             .describe("Tenant associations with specific roles"),
-    //         ssoAppIds: z.array(z.string()).optional()
-    //             .describe("SSO application IDs to associate"),
-    //         customAttributes: z.record(z.any()).optional()
-    //             .describe("Custom attributes for the user"),
-    //     },
-    //     async ({ loginId, ...options }) => {
-    //         try {
-    //             const user = await descope.management.user.create(loginId, options);
+    server.tool(
+        "create-user",
+        "Create a new user in Descope project",
+        {
+            projectId: z.string()
+                .describe("The project ID to create the user in"),
+            loginId: z.string()
+                .describe("Primary login identifier for the user"),
+            additionalLoginIds: z.array(z.string()).optional()
+                .describe("Additional login identifiers"),
+            email: z.string().email().optional()
+                .describe("User's email address"),
+            verifiedEmail: z.boolean().optional()
+                .describe("Whether the email is pre-verified"),
+            phone: z.string().optional()
+                .describe("User's phone number in E.164 format"),
+            verifiedPhone: z.boolean().optional()
+                .describe("Whether the phone is pre-verified"),
+            displayName: z.string().optional()
+                .describe("User's display name"),
+            givenName: z.string().optional()
+                .describe("User's given/first name"),
+            middleName: z.string().optional()
+                .describe("User's middle name"),
+            familyName: z.string().optional()
+                .describe("User's family/last name"),
+            picture: z.string().url().optional()
+                .describe("URL to user's profile picture"),
+            roles: z.array(z.string()).optional()
+                .describe("Global role names to assign to the user"),
+            userTenants: z.array(z.object({
+                tenantId: z.string(),
+                roleNames: z.array(z.string()),
+            })).optional()
+                .describe("Tenant associations with specific roles"),
+            ssoAppIds: z.array(z.string()).optional()
+                .describe("SSO application IDs to associate"),
+            customAttributes: z.record(z.any()).optional()
+                .describe("Custom attributes for the user"),
+        },
+        async ({ projectId, loginId, ...options }, { authInfo }) => {
+            try {
+                // const user = await descope.management.user.create(loginId, options);
+                // use fetch instead
+                const access_token = authInfo?.token;
+                const response = await fetch(`${DESCOPE_BASE_URL}/v1/mgmt/user/create`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${projectId}:${access_token}`
+                    },
+                    body: JSON.stringify({
+                        loginId,
+                        ...options
+                    })
+                })
+                const user = await response.json();
 
-    //             return {
-    //                 content: [
-    //                     {
-    //                         type: "text",
-    //                         text: `Successfully created user:\n\n${JSON.stringify(user.data, null, 2)}`,
-    //                     },
-    //                 ],
-    //             };
-    //         } catch (error) {
-    //             return {
-    //                 content: [
-    //                     {
-    //                         type: "text",
-    //                         text: `Error creating user: ${error}`,
-    //                     },
-    //                 ],
-    //             };
-    //         }
-    //     },
-    // );
+                return {
+                    content: [
+                        {
+                            type: "text",
+                            text: `Successfully created user:\n\n${JSON.stringify(user, null, 2)}`,
+                        },
+                    ],
+                };
+            } catch (error) {
+                return {
+                    content: [
+                        {
+                            type: "text",
+                            text: `Error creating user: ${error}`,
+                        },
+                    ],
+                };
+            }
+        },
+    );
 
     // Add invite-user tool
     // server.tool(

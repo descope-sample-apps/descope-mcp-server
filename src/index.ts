@@ -14,6 +14,7 @@ const app = express();
 
 const proxyProvider = new DescopeProxyOAuthServerProvider()
 
+// Adds the metadata and route handlers for OAuth endpoints
 app.use(mcpAuthRouter({
     provider: proxyProvider,
     issuerUrl: new URL("http://localhost:3001"),
@@ -22,6 +23,7 @@ app.use(mcpAuthRouter({
 }))
 
 
+// Adds token validation and 401 returning
 app.use(["/sse", "/message"], requireBearerAuth({
     provider: proxyProvider,
 }))
