@@ -69,6 +69,7 @@ export const createServer = () => {
             try {
                 const now = Date.now();
                 const from = now - (hoursBack * 60 * 60 * 1000);
+
                 // const audits = await descope.management.audit.search({
                 //     from,
                 //     to: now,
@@ -101,9 +102,8 @@ export const createServer = () => {
                 })
                 const audits = await response.json();
                 // Limit the number of audits to the specified limit
-                const auditResponse = (audits as { data: any[] }).data;
+                const auditResponse = (audits as { audits: any[] }).audits;
                 const limitedAudits = auditResponse ? auditResponse.slice(0, limit) : [];
-
                 return {
                     content: [
                         {

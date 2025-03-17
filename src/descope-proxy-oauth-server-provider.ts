@@ -9,6 +9,10 @@ import { OAuthRegisteredClientsStore } from "@modelcontextprotocol/sdk/server/au
 import { ProxyOptions, ProxyOAuthServerProvider } from "@modelcontextprotocol/sdk/server/auth/providers/proxyProvider.js";
 import { DESCOPE_BASE_URL } from "./constants.js";
 
+import dotenv from "dotenv";
+
+dotenv.config();
+
 const endpoints = {
   authorize: `${DESCOPE_BASE_URL}/oauth2/v1/apps/authorize`,
   token: `${DESCOPE_BASE_URL}/oauth2/v1/apps/token`,
@@ -45,9 +49,10 @@ export class DescopeProxyOAuthServerProvider extends ProxyOAuthServerProvider {
         revocationUrl: endpoints.revoke,
       },
       verifyAccessToken: async (token) => {
+
         const descope = DescopeClient({
           projectId: this.projectId,
-          managementKey: this.managementKey,
+          // managementKey: this.managementKey,
           baseUrl: this.baseUrl
         });
         const authInfo = await descope.validateSession(token);
