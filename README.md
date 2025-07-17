@@ -1,3 +1,5 @@
+[![MseeP.ai Security Assessment Badge](https://mseep.net/pr/descope-sample-apps-descope-mcp-server-stdio-badge.jpg)](https://mseep.ai/app/descope-sample-apps-descope-mcp-server-stdio)
+
 # Descope MCP Server
 [![smithery badge](https://smithery.ai/badge/@descope-sample-apps/descope-mcp-server)](https://smithery.ai/server/@descope-sample-apps/descope-mcp-server)
 
