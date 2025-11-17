@@ -5,6 +5,10 @@
 
 The Descope Model Context Protocol (MCP) server provides an interface to interact with Descope's Management APIs, enabling the search and retrieval of project-related information.
 
+<a href="https://glama.ai/mcp/servers/@descope-sample-apps/descope-mcp-server">
+  <img width="380" height="200" src="https://glama.ai/mcp/servers/@descope-sample-apps/descope-mcp-server/badge" alt="Descope Server MCP server" />
+</a>
+
 ## Available Tools
 
 - `search-audits`: Retrieves up to 10 audit log entries from your Descope project.
